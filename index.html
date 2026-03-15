@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pioneer OS | Core</title>
+</head>
+<body>
+    <h1>PIONEER OS</h1>
+    <p><i>"Pioneer doesn't know to rest."</i></p>
+    <hr>
+
+    <div id="auth-section">
+        <h3>Orderer Verification</h3>
+        <button id="scan-btn" style="padding: 20px; width: 100%;">SCAN RETINA TO UNLOCK</button>
+        <p><small>Note: When you don't earn something, you are the product.</small></p>
+    </div>
+
+    <div id="pioneer-main" style="display:none;">
+        <h3>System Status: <span id="status">UNLOCKED</span></h3>
+        <p>Brain: <b id="brain-state">IDLE</b></p>
+        <button onclick="bootBrain()">ACTIVATE LOCAL INTELLIGENCE</button>
+        
+        <hr>
+        
+        <h3>Privacy Shield (Excluded Apps)</h3>
+        <div id="shield-list"></div>
+        <input type="text" id="app-name" placeholder="com.example.app">
+        <button onclick="addToShield()">ADD TO BLACKLIST</button>
+
+        <hr>
+
+        <h3>Action Logs</h3>
+        <pre id="log-box" style="background: #eee; padding: 10px; height: 150px; overflow: auto;"></pre>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
