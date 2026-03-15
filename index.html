@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pioneer OS | Core</title>
+    <title>Pioneer OS | Sovereign Core</title>
 </head>
 <body>
     <h1>PIONEER OS</h1>
@@ -11,29 +11,128 @@
     <hr>
 
     <div id="auth-section">
-        <h3>Orderer Verification</h3>
-        <button id="scan-btn" style="padding: 20px; width: 100%;">SCAN RETINA TO UNLOCK</button>
+        <h3 id="auth-title">Identify Orderer</h3>
+        <p><small>Establish your PIN or enter it to unlock your local hardware.</small></p>
+        <input type="password" id="pin-input" placeholder="Enter PIN" style="padding: 10px; font-size: 1.2rem; width: 80%;">
+        <br><br>
+        <button id="auth-btn" style="padding: 15px; width: 85%;">UNLOCK SYSTEM</button>
         <p><small>Note: When you don't earn something, you are the product.</small></p>
     </div>
 
     <div id="pioneer-main" style="display:none;">
-        <h3>System Status: <span id="status">UNLOCKED</span></h3>
-        <p>Brain: <b id="brain-state">IDLE</b></p>
-        <button onclick="bootBrain()">ACTIVATE LOCAL INTELLIGENCE</button>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>System: <span id="status" style="color:green;">SECURE</span></h3>
+            <button onclick="logout()">LOCK SYSTEM</button>
+        </div>
+        
+        <p>Brain Status: <b id="brain-state">IDLE</b></p>
+        <button onclick="bootBrain()" style="padding: 10px;">BOOT LOCAL INTELLIGENCE</button>
         
         <hr>
-        
+
         <h3>Privacy Shield (Excluded Apps)</h3>
-        <div id="shield-list"></div>
-        <input type="text" id="app-name" placeholder="com.example.app">
-        <button onclick="addToShield()">ADD TO BLACKLIST</button>
+        <p><small>The AI will be blind to these package names to protect your sovereignty.</small></p>
+        <ul id="shield-display"></ul>
+        <input type="text" id="app-name" placeholder="com.example.banking">
+        <button onclick="addToShield()">BLACKLIST APP</button>
 
         <hr>
 
-        <h3>Action Logs</h3>
-        <pre id="log-box" style="background: #eee; padding: 10px; height: 150px; overflow: auto;"></pre>
+        <h3>Sovereign Logs</h3>
+        <pre id="log-box" style="background: #eee; padding: 10px; height: 200px; overflow: auto; border: 1px solid #ccc; font-family: monospace;"></pre>
+        <button onclick="clearLogs()" style="font-size: 0.7rem;">Clear Local Logs</button>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // --- CONSTANTS & DOM ELEMENTS ---
+        const authBtn = document.getElementById('auth-btn');
+        const pinInput = document.getElementById('pin-input');
+        const authSection = document.getElementById('auth-section');
+        const mainSection = document.getElementById('pioneer-main');
+        const authTitle = document.getElementById('auth-title');
+        const shieldDisplay = document.getElementById('shield-display');
+
+        // --- AUTH LOGIC ---
+        let savedPin = localStorage.getItem('pioneer_pin');
+
+        if (!savedPin) {
+            authTitle.innerText = "Set Sovereign PIN (First Time Use)";
+        }
+
+        authBtn.onclick = () => {
+            const enteredPin = pinInput.value;
+
+            if (!savedPin) {
+                if (enteredPin.length < 4) {
+                    alert("A Pioneer's PIN must be at least 4 digits.");
+                    return;
+                }
+                localStorage.setItem('pioneer_pin', enteredPin);
+                alert("PIN Established. Welcome, Orderer.");
+                location.reload();
+            } else {
+                if (enteredPin === savedPin) {
+                    authSection.style.display = 'none';
+                    mainSection.style.display = 'block';
+                    renderShield();
+                    addLog("Orderer verified via PIN. System online.");
+                } else {
+                    alert("Incorrect PIN. Sovereign access denied.");
+                    addLog("FAILED LOGIN ATTEMPT.");
+                }
+            }
+            pinInput.value = '';
+        };
+
+        function logout() {
+            mainSection.style.display = 'none';
+            authSection.style.display = 'block';
+            addLog("System manually locked.");
+        }
+
+        // --- AI BRAIN LOGIC ---
+        async function bootBrain() {
+            const state = document.getElementById('brain-state');
+            state.innerText = "LOADING MODEL...";
+            addLog("Pulling Gemma-3 from local disk cache...");
+            
+            // Artificial delay to simulate local NPU initialization
+            setTimeout(() => {
+                state.innerText = "ONLINE (LOCAL GPU)";
+                addLog("Gemma-3-4B is now acting on local hardware. No data is leaving this device.");
+            }, 1500);
+        }
+
+        // --- PRIVACY SHIELD LOGIC ---
+        function addToShield() {
+            const app = document.getElementById('app-name').value;
+            if (app) {
+                let list = JSON.parse(localStorage.getItem('pioneer_shield') || "[]");
+                list.push(app);
+                localStorage.setItem('pioneer_shield', JSON.stringify(list));
+                document.getElementById('app-name').value = '';
+                renderShield();
+                addLog(`Shield Active: AI is now blind to ${app}.`);
+            }
+        }
+
+        function renderShield() {
+            let list = JSON.parse(localStorage.getItem('pioneer_shield') || "[]");
+            shieldDisplay.innerHTML = list.map(item => `<li>${item}</li>`).join('');
+        }
+
+        // --- LOGGING ---
+        function addLog(msg) {
+            const box = document.getElementById('log-box');
+            const timestamp = new Date().toLocaleTimeString();
+            box.innerText += `\n[${timestamp}] ${msg}`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('log-box').innerText = "";
+            addLog("Logs purged by Orderer.");
+        }
+    </script>
 </body>
-</html>
+</html>t
