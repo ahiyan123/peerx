@@ -20,15 +20,16 @@
   },
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "name": "PioneerOS"
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "PioneerOS",
             "authors": "Pioneer",
-            "exe": "PioneerOS.exe",
-            "setupExe": "PioneerOS-Setup.exe",
+            "description": "Sovereign AI OS",
             "noMsi": true
           }
         }
