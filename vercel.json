@@ -25,8 +25,11 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
+            "name": "PioneerOS",
             "authors": "Pioneer",
-            "description": "Sovereign AI OS"
+            "exe": "PioneerOS.exe",
+            "setupExe": "PioneerOS-Setup.exe",
+            "noMsi": true
           }
         }
       ]
