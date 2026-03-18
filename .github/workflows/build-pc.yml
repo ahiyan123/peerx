@@ -1,5 +1,5 @@
 name: Pioneer Desktop Factory
-on: [push] # The factory starts every time you save code
+on: [push]
 
 jobs:
   build-windows:
@@ -13,18 +13,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Electron Forge
-        run: |
-          npm init -y
-          npm install --save-dev @electron-forge/cli
-          npx electron-forge import
-          npm install robotjs # The "Hands" for Windows control
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Build EXE
-        run: npm run make
+      - name: Build Portable EXE
+        run: npm run build
 
       - name: Upload Pioneer Executable
         uses: actions/upload-artifact@v4
         with:
           name: Pioneer-OS-Windows
-          path: out/make/squirrel.windows/x64/*.exe
+          path: dist/*.exe
