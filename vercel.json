@@ -21,7 +21,8 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "PioneerOS"
+        "name": "PioneerOS",
+        "executableName": "PioneerOS"
       },
       "makers": [
         {
@@ -30,8 +31,14 @@
             "name": "PioneerOS",
             "authors": "Pioneer",
             "description": "Sovereign AI OS",
-            "noMsi": true
+            "noMsi": true,
+            "setupExe": "PioneerOS-Setup.exe"
           }
+        }
+      ]
+    }
+  }
+}
         }
       ]
     }
