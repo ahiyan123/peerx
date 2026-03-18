@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>PioneerOS</id>
+        <version>1.0.0</version>
+        <title>Pioneer OS</title>
+        <authors>Pioneer</authors>
+        <owners>Orderer</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Sovereign AI OS - Pioneer doesn't know to rest.</description>
+        <releaseNotes>Alpha Build - Local First.</releaseNotes>
+        <copyright>Copyright 2026</copyright>
+        <tags>AI Sovereign Pioneer</tags>
+    </metadata>
+</package>
