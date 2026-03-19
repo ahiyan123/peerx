@@ -4,7 +4,7 @@ on: [push]
 jobs:
   build-windows:
     runs-on: windows-latest
-    steps:
+        steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -17,10 +17,11 @@ jobs:
         run: |
           echo "${{ secrets.P12_BASE64 }}" > cert.p12.base64
           certutil -decode cert.p12.base64 cert.p12
-       run: npm install && npx electron-rebuild
+
       - name: Install & Build
         run: |
           npm install
+          npm install && npx electron-rebuild
           npm run build
         env:
           CSC_LINK: ${{ github.workspace }}\cert.p12
