@@ -19,15 +19,10 @@
     "appId": "com.pioneer.os",
     "productName": "PioneerOS",
     "win": {
-      "target": "portable",
-      "publish": null
+      "target": "portable"
     },
     "directories": {
       "output": "dist"
-    }
-  }
-}
-      ]
     }
   }
 }
