@@ -11,12 +11,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Node 18 is better for gyp/native modules
-
-      - name: Install Windows Build Tools
-        # This gives the runner the C++ compiler it's crying for
-        run: npm install --global --production windows-build-tools
-        shell: cmd
+          node-version: '20' # Keeping your version 20
 
       - name: Decode Certificate
         run: |
@@ -25,18 +20,21 @@ jobs:
         shell: cmd
 
       - name: Install & Muscle Rebuild
+        # We use MSVS_VERSION 2022 to leverage the runner's pre-installed compiler
         run: |
           npm install
-          # Explicitly target robotjs for the rebuild
           npx electron-rebuild -f -w robotjs
         shell: cmd
+        env:
+          npm_config_msvs_version: 2022
+          npm_config_build_from_source: true
 
       - name: Build & Sign
         run: npm run build
         env:
           CSC_LINK: ${{ github.workspace }}\cert.p12
           CSC_KEY_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          # Some builders need this for native modules
+          # Ensures the signed build includes the compiled robotjs
           DEBUG: electron-rebuild
 
       - name: Upload Signed Pioneer
