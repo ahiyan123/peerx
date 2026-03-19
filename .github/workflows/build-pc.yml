@@ -11,16 +11,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Keeping your version 20
+          node-version: '20'
 
       - name: Decode Certificate
-        run: |
-          echo "${{ secrets.P12_BASE64 }}" > cert.p12.base64
-          certutil -decode cert.p12.base64 cert.p12
-        shell: cmd
+        # We add an ID here so we can reference the file path later
+        id: write_cert
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: 'cert.p12'
+          encodedString: ${{ secrets.P12_BASE64 }}
 
       - name: Install & Muscle Rebuild
-        # We use MSVS_VERSION 2022 to leverage the runner's pre-installed compiler
         run: |
           npm install
           npx electron-rebuild -f -w robotjs
@@ -32,10 +33,9 @@ jobs:
       - name: Build & Sign
         run: npm run build
         env:
-          CSC_LINK: ${{ github.workspace }}\cert.p12
+          # Use the actual path from the decoding step
+          CSC_LINK: ${{ steps.write_cert.outputs.filePath }}
           CSC_KEY_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          # Ensures the signed build includes the compiled robotjs
-          DEBUG: electron-rebuild
 
       - name: Upload Signed Pioneer
         uses: actions/upload-artifact@v4
