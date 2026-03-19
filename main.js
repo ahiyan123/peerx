@@ -1,24 +1,32 @@
+// main.js
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
 const robot = require('robotjs');
 
-let mainWindow;
-
 function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1200,
+  const win = new BrowserWindow({
+    width: 1000,
     height: 800,
-    title: "Pioneer OS",
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false, // Allows Vercel to talk to RobotJS
-      sandbox: false
+      nodeIntegration: true,    // Allows 'require' in the frontend
+      contextIsolation: false, // Disables the security sandbox for IPC
+      sandbox: false           // Crucial for RobotJS to work
     }
   });
 
-  // Points to your sovereign brain on Vercel
-  mainWindow.loadURL('https://peerx-zeta.vercel.app');
+  win.loadURL('https://peerx-zeta.vercel.app'); 
 }
+
+// THE NERVE CENTER: Listen for the Brain's signals
+ipcMain.on('pioneer-cmd', (event, payload) => {
+  console.log("Command Received:", payload); // Look at your terminal!
+  
+  if (payload.action === 'click') {
+    robot.moveMouse(payload.x, payload.y);
+    robot.mouseClick();
+  } else if (payload.action === 'type') {
+    robot.typeString(payload.text);
+  }
+});
 
 app.whenReady().then(createWindow);
 
