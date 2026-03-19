@@ -7,6 +7,7 @@ function createWindow() {
     width: 1000,
     height: 800,
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,    // Allows 'require' in the frontend
       contextIsolation: false, // Disables the security sandbox for IPC
       enableRemoteModule: true,
