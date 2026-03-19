@@ -111,29 +111,22 @@ async function bootBrain() {
 
 // --- THE HANDS: ELECTRON BRIDGE ---
 function executePhysicalAction(text) {
-    if (!window.require) {
-        addLog("Simulated action: " + text);
-        return;
-    }
-
     const { ipcRenderer } = window.require('electron');
 
-    // Extract Tags
-    const click = text.match(/\[CLICK:\s*(\d+),\s*(\d+)\]/);
-    const type = text.match(/\[TYPE:\s*(.*?)\]/);
-    const press = text.match(/\[PRESS:\s*(.*?)\]/);
+    // Find the tags anywhere in the AI's response
+    const clickMatch = text.match(/\[CLICK:\s*(\d+),\s*(\d+)\]/i);
+    const typeMatch = text.match(/\[TYPE:\s*(.*?)\]/i);
 
-    if (click) {
-        addLog(`Acting: Clicking ${click[1]}, ${click[2]}`);
-        ipcRenderer.send('pioneer-cmd', { action: 'click', x: parseInt(click[1]), y: parseInt(click[2]) });
+    if (clickMatch) {
+        const x = parseInt(clickMatch[1]);
+        const y = parseInt(clickMatch[2]);
+        addLog(`Physical Move: Clicking ${x}, ${y}`);
+        ipcRenderer.send('pioneer-cmd', { action: 'click', x, y });
     }
-    if (type) {
-        addLog(`Acting: Typing message...`);
-        ipcRenderer.send('pioneer-cmd', { action: 'type', text: type[1] });
-    }
-    if (press) {
-        addLog(`Acting: Pressing ${press[1]}`);
-        ipcRenderer.send('pioneer-cmd', { action: 'tap', key: press[1] });
+
+    if (typeMatch) {
+        addLog(`Physical Move: Typing text...`);
+        ipcRenderer.send('pioneer-cmd', { action: 'type', text: typeMatch[1] });
     }
 }
 
