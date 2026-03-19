@@ -11,21 +11,33 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18' # Node 18 is better for gyp/native modules
+
+      - name: Install Windows Build Tools
+        # This gives the runner the C++ compiler it's crying for
+        run: npm install --global --production windows-build-tools
+        shell: cmd
 
       - name: Decode Certificate
         run: |
           echo "${{ secrets.P12_BASE64 }}" > cert.p12.base64
           certutil -decode cert.p12.base64 cert.p12
+        shell: cmd
 
-      - name: Install & Build
+      - name: Install & Muscle Rebuild
         run: |
           npm install
-          npm install && npx electron-rebuild
-          npm run build
+          # Explicitly target robotjs for the rebuild
+          npx electron-rebuild -f -w robotjs
+        shell: cmd
+
+      - name: Build & Sign
+        run: npm run build
         env:
           CSC_LINK: ${{ github.workspace }}\cert.p12
           CSC_KEY_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          # Some builders need this for native modules
+          DEBUG: electron-rebuild
 
       - name: Upload Signed Pioneer
         uses: actions/upload-artifact@v4
