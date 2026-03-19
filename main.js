@@ -1,21 +1,28 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
 const robot = require('robotjs');
 
+let mainWindow;
+
 function createWindow() {
-  const win = new BrowserWindow({
-    width: 1200, height: 800,
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
     title: "Pioneer OS",
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false, // Allows Vercel to talk to RobotJS
+      sandbox: false
     }
   });
-  win.loadURL('https://peerx-zeta.vercel.app');
+
+  // Points to your sovereign brain on Vercel
+  mainWindow.loadURL('https://peerx-zeta.vercel.app');
 }
 
 app.whenReady().then(createWindow);
 
-// Unified Command Center
+// The Nerve Center: Listen for commands from the UI
 ipcMain.on('pioneer-cmd', (event, payload) => {
   const { action, x, y, text, key } = payload;
   try {
@@ -26,10 +33,10 @@ ipcMain.on('pioneer-cmd', (event, payload) => {
     else if (action === 'type') {
       robot.typeString(text);
     }
-    else if (action === 'tap') {
-      robot.keyTap(key); 
+    else if (action === 'press') {
+      robot.keyTap(key.toLowerCase());
     }
   } catch (e) {
-    console.error("Action Failed:", e);
+    console.error("Physical Action Failed:", e);
   }
 });
