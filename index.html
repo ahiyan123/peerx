@@ -44,95 +44,125 @@
     </div>
 
     <script>
-        // --- CONSTANTS & DOM ELEMENTS ---
-        const authBtn = document.getElementById('auth-btn');
-        const pinInput = document.getElementById('pin-input');
-        const authSection = document.getElementById('auth-section');
-        const mainSection = document.getElementById('pioneer-main');
-        const authTitle = document.getElementById('auth-title');
-        const shieldDisplay = document.getElementById('shield-display');
+       // --- CONSTANTS & DOM ELEMENTS ---
+const authBtn = document.getElementById('auth-btn');
+const pinInput = document.getElementById('pin-input');
+const authSection = document.getElementById('auth-section');
+const mainSection = document.getElementById('pioneer-main');
+const authTitle = document.getElementById('auth-title');
+const shieldDisplay = document.getElementById('shield-display');
 
-        // --- AUTH LOGIC ---
-        let savedPin = localStorage.getItem('pioneer_pin');
+// --- SOVEREIGN SETTINGS ---
+const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN; // Put your token here
+const MODEL_ID = "google/gemma-2-9b-it"; // Gemma 3-B (or 2-9B)
 
-        if (!savedPin) {
-            authTitle.innerText = "Set Sovereign PIN (First Time Use)";
+// --- AUTH LOGIC ---
+let savedPin = localStorage.getItem('pioneer_pin');
+if (!savedPin) { authTitle.innerText = "Set Sovereign PIN (First Time Use)"; }
+
+authBtn.onclick = () => {
+    const enteredPin = pinInput.value;
+    if (!savedPin) {
+        if (enteredPin.length < 4) { alert("PIN must be 4+ digits."); return; }
+        localStorage.setItem('pioneer_pin', enteredPin);
+        location.reload();
+    } else {
+        if (enteredPin === savedPin) {
+            authSection.style.display = 'none';
+            mainSection.style.display = 'block';
+            renderShield();
+            addLog("Orderer verified. System online.");
+        } else {
+            alert("Denied.");
+            addLog("FAILED LOGIN ATTEMPT.");
         }
+    }
+    pinInput.value = '';
+};
 
-        authBtn.onclick = () => {
-            const enteredPin = pinInput.value;
+// --- THE BRAIN: HUGGING FACE COMMANDER ---
+async function bootBrain() {
+    const state = document.getElementById('brain-state');
+    const prompt = prompt("Enter command for Pioneer (e.g. 'Click middle and type hello')");
+    if (!prompt) return;
 
-            if (!savedPin) {
-                if (enteredPin.length < 4) {
-                    alert("A Pioneer's PIN must be at least 4 digits.");
-                    return;
-                }
-                localStorage.setItem('pioneer_pin', enteredPin);
-                alert("PIN Established. Welcome, Orderer.");
-                location.reload();
-            } else {
-                if (enteredPin === savedPin) {
-                    authSection.style.display = 'none';
-                    mainSection.style.display = 'block';
-                    renderShield();
-                    addLog("Orderer verified via PIN. System online.");
-                } else {
-                    alert("Incorrect PIN. Sovereign access denied.");
-                    addLog("FAILED LOGIN ATTEMPT.");
-                }
-            }
-            pinInput.value = '';
-        };
+    state.innerText = "THINKING...";
+    addLog(`Sending intent to ${MODEL_ID}...`);
 
-        function logout() {
-            mainSection.style.display = 'none';
-            authSection.style.display = 'block';
-            addLog("System manually locked.");
-        }
+    try {
+        const response = await fetch(`https://api-inference.huggingface.co/models/${MODEL_ID}`, {
+            headers: { Authorization: `Bearer ${HF_TOKEN}`, "Content-Type": "application/json" },
+            method: "POST",
+            body: JSON.stringify({
+                inputs: `<start_of_turn>user\nSystem: You are Pioneer OS. Use [CLICK: x,y], [TYPE: text], or [PRESS: key]. Res: ${window.screen.width}x${window.screen.height}.\n\nUser: ${prompt}<end_of_turn>\n<start_of_turn>model\n`,
+            }),
+        });
 
-        // --- AI BRAIN LOGIC ---
-        async function bootBrain() {
-            const state = document.getElementById('brain-state');
-            state.innerText = "LOADING MODEL...";
-            addLog("Pulling Gemma-3 from local disk cache...");
-            
-            // Artificial delay to simulate local NPU initialization
-            setTimeout(() => {
-                state.innerText = "ONLINE (LOCAL GPU)";
-                addLog("Gemma-3-4B is now acting on local hardware. No data is leaving this device.");
-            }, 1500);
-        }
+        const result = await response.json();
+        const aiText = result[0].generated_text.split("<start_of_turn>model\n")[1];
+        
+        addLog(`Pioneer: ${aiText}`);
+        executePhysicalAction(aiText); // THE HANDS
+        state.innerText = "ONLINE (IDLE)";
 
-        // --- PRIVACY SHIELD LOGIC ---
-        function addToShield() {
-            const app = document.getElementById('app-name').value;
-            if (app) {
-                let list = JSON.parse(localStorage.getItem('pioneer_shield') || "[]");
-                list.push(app);
-                localStorage.setItem('pioneer_shield', JSON.stringify(list));
-                document.getElementById('app-name').value = '';
-                renderShield();
-                addLog(`Shield Active: AI is now blind to ${app}.`);
-            }
-        }
+    } catch (err) {
+        state.innerText = "CONNECTION ERROR";
+        addLog("Error connecting to Hugging Face Brain.");
+    }
+}
 
-        function renderShield() {
-            let list = JSON.parse(localStorage.getItem('pioneer_shield') || "[]");
-            shieldDisplay.innerHTML = list.map(item => `<li>${item}</li>`).join('');
-        }
+// --- THE HANDS: ELECTRON BRIDGE ---
+function executePhysicalAction(text) {
+    if (!window.require) {
+        addLog("Simulated action: " + text);
+        return;
+    }
 
-        // --- LOGGING ---
-        function addLog(msg) {
-            const box = document.getElementById('log-box');
-            const timestamp = new Date().toLocaleTimeString();
-            box.innerText += `\n[${timestamp}] ${msg}`;
-            box.scrollTop = box.scrollHeight;
-        }
+    const { ipcRenderer } = window.require('electron');
 
-        function clearLogs() {
-            document.getElementById('log-box').innerText = "";
-            addLog("Logs purged by Orderer.");
-        }
+    // Extract Tags
+    const click = text.match(/\[CLICK:\s*(\d+),\s*(\d+)\]/);
+    const type = text.match(/\[TYPE:\s*(.*?)\]/);
+    const press = text.match(/\[PRESS:\s*(.*?)\]/);
+
+    if (click) {
+        addLog(`Acting: Clicking ${click[1]}, ${click[2]}`);
+        ipcRenderer.send('pioneer-cmd', { action: 'click', x: parseInt(click[1]), y: parseInt(click[2]) });
+    }
+    if (type) {
+        addLog(`Acting: Typing message...`);
+        ipcRenderer.send('pioneer-cmd', { action: 'type', text: type[1] });
+    }
+    if (press) {
+        addLog(`Acting: Pressing ${press[1]}`);
+        ipcRenderer.send('pioneer-cmd', { action: 'tap', key: press[1] });
+    }
+}
+
+// --- PRIVACY & LOGGING ---
+function addToShield() {
+    const app = document.getElementById('app-name').value;
+    if (app) {
+        let list = JSON.parse(localStorage.getItem('pioneer_shield') || "[]");
+        list.push(app);
+        localStorage.setItem('pioneer_shield', JSON.stringify(list));
+        renderShield();
+        addLog(`Privacy Shield expanded: ${app}`);
+    }
+}
+
+function renderShield() {
+    let list = JSON.parse(localStorage.getItem('pioneer_shield') || "[]");
+    shieldDisplay.innerHTML = list.map(item => `<li>${item}</li>`).join('');
+}
+
+function addLog(msg) {
+    const box = document.getElementById('log-box');
+    box.innerText += `\n[${new Date().toLocaleTimeString()}] ${msg}`;
+    box.scrollTop = box.scrollHeight;
+}
+
+function logout() { location.reload(); }
     </script>
 </body>
 </html>t
