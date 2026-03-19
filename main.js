@@ -9,6 +9,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,    // Allows 'require' in the frontend
       contextIsolation: false, // Disables the security sandbox for IPC
+      enableRemoteModule: true,
       sandbox: false           // Crucial for RobotJS to work
     }
   });
