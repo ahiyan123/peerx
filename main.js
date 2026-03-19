@@ -1,25 +1,35 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
+const robot = require('robotjs');
 
-function createWindow () {
+function createWindow() {
   const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1200, height: 800,
     title: "Pioneer OS",
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     }
   });
-
-  // This points the desktop app to your Vercel URL
   win.loadURL('https://peerx-zeta.vercel.app');
 }
 
 app.whenReady().then(createWindow);
 
-// The "Hands" - Allow the website to trigger mouse clicks
-ipcMain.on('click-request', (event, x, y) => {
-  const robot = require('robotjs');
-  robot.mouseClick();
+// Unified Command Center
+ipcMain.on('pioneer-cmd', (event, payload) => {
+  const { action, x, y, text, key } = payload;
+  try {
+    if (action === 'click') {
+      if (x && y) robot.moveMouse(x, y);
+      robot.mouseClick();
+    } 
+    else if (action === 'type') {
+      robot.typeString(text);
+    }
+    else if (action === 'tap') {
+      robot.keyTap(key); 
+    }
+  } catch (e) {
+    console.error("Action Failed:", e);
+  }
 });
