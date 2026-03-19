@@ -3,18 +3,16 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const robot = require('robotjs');
 
 function createWindow() {
-  const win = new BrowserWindow({
-    width: 1000,
-    height: 800,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: true,    // Allows 'require' in the frontend
-      contextIsolation: false, // Disables the security sandbox for IPC
-      enableRemoteModule: true,
-      nodeIntegrationInSubFrames: true,
-      sandbox: false           // Crucial for RobotJS to work
-    }
-  });
+ const win = new BrowserWindow({
+  width: 1200,
+  height: 800,
+  webPreferences: {
+    nodeIntegration: true,    // This enables 'require'
+    contextIsolation: false, // This allows Vercel to see the 'require'
+    sandbox: false,           // This lets RobotJS touch the hardware
+    webSecurity: false        // Allows the bridge to Hugging Face
+  }
+   });
 
   win.loadURL('https://peerx-zeta.vercel.app'); 
 }
